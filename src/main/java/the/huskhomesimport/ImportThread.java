@@ -24,42 +24,32 @@ public class ImportThread extends BukkitRunnable{
 		HuskHomesAPI huskHomesAPI = HuskHomesAPI.getInstance();
 		OfflinePlayer[] offlinePlayers = Bukkit.getOfflinePlayers();
 		for(OfflinePlayer offlinePlayer : offlinePlayers){
-			Bukkit.getLogger().info("importing " + offlinePlayer.getName() + " : " + offlinePlayer.getUniqueId());
-			CMIUser user = CMI.getInstance().getPlayerManager().getUser(offlinePlayer);
-			LinkedHashMap<String, CmiHome> homes = user.getHomes();
-			if(homes != null){
-				for(String homeName : homes.keySet()){
-					CmiHome home = homes.get(homeName);
-					Location bukkitLocation = home.getLoc().getBukkitLoc();
-					Bukkit.getLogger().info(homeName + " : " + bukkitLocation);
-//					CompletableFuture<Optional<SavedUser>> huskUserFuture = huskHomesAPI.getUserData(offlinePlayer.getUniqueId());
-//					huskUserFuture.thenAccept(huskUser -> {
-//						net.william278.huskhomes.position.Location huskLocation = net.william278.huskhomes.position.Location.at(bukkitLocation.getX(), bukkitLocation.getY(), bukkitLocation.getZ(), bukkitLocation.getYaw(), bukkitLocation.getPitch(), net.william278.huskhomes.position.World.from(bukkitLocation.getWorld().getName(), bukkitLocation.getWorld().getUID()));
-//						Position position = Position.at(huskLocation, huskHomesAPI.getServer());
-//						if(huskUser.isPresent()){
-//							huskHomesAPI.createHome(huskUser.get().getUser(), homeName, position);
-//							Bukkit.getLogger().info("import " + homeName + " succeed");
-//						}else{
-//							Bukkit.getLogger().info("huskUser is not found");
-//							SavedUser savedUser = new SavedUser(User.of(offlinePlayer.getUniqueId(), offlinePlayer.getName()), 5, false);
-//							huskHomesAPI.saveUserData(savedUser);
-//							huskHomesAPI.createHome(savedUser.getUser(), homeName, position);
-//							Bukkit.getLogger().info("created user and import " + homeName + " succeed");
-//						}
-//					});
-					User huskUser = User.of(offlinePlayer.getUniqueId(), offlinePlayer.getName());
-					SavedUser savedUser = new SavedUser(huskUser, 5, false);
-					HuskHomes huskHomes = JavaPlugin.getPlugin(BukkitHuskHomes.class);
-					huskHomes.getDatabase().ensureUser(huskUser);
-					huskHomesAPI.saveUserData(savedUser);
-					net.william278.huskhomes.position.Location huskLocation = net.william278.huskhomes.position.Location.at(bukkitLocation.getX(), bukkitLocation.getY(), bukkitLocation.getZ(), bukkitLocation.getYaw(), bukkitLocation.getPitch(), World.from(bukkitLocation.getWorld().getName(), bukkitLocation.getWorld().getUID()));
-					Position position = Position.at(huskLocation, huskHomesAPI.getServer());
-					huskHomesAPI.createHome(huskUser, homeName, position);
-					Bukkit.getLogger().info("created user and import " + homeName + " succeed");
+			new BukkitRunnable(){
+				@Override
+				public void run(){
+					Bukkit.getLogger().info("importing " + offlinePlayer.getName() + " : " + offlinePlayer.getUniqueId());
+					CMIUser user = CMI.getInstance().getPlayerManager().getUser(offlinePlayer);
+					LinkedHashMap<String, CmiHome> homes = user.getHomes();
+					if(homes != null){
+						for(String homeName : homes.keySet()){
+							CmiHome home = homes.get(homeName);
+							Location bukkitLocation = home.getLoc().getBukkitLoc();
+							Bukkit.getLogger().info(homeName + " : " + bukkitLocation);
+							User huskUser = User.of(offlinePlayer.getUniqueId(), offlinePlayer.getName());
+							SavedUser savedUser = new SavedUser(huskUser, homes.size(), false);
+							HuskHomes huskHomes = JavaPlugin.getPlugin(BukkitHuskHomes.class);
+							huskHomes.getDatabase().ensureUser(huskUser);
+							huskHomesAPI.saveUserData(savedUser);
+							net.william278.huskhomes.position.Location huskLocation = net.william278.huskhomes.position.Location.at(bukkitLocation.getX(), bukkitLocation.getY(), bukkitLocation.getZ(), bukkitLocation.getYaw(), bukkitLocation.getPitch(), World.from(bukkitLocation.getWorld().getName(), bukkitLocation.getWorld().getUID()));
+							Position position = Position.at(huskLocation, huskHomesAPI.getServer());
+							huskHomesAPI.createHome(huskUser, homeName, position);
+							Bukkit.getLogger().info("created user and import " + homeName + " succeed");
+						}
+					}else{
+						Bukkit.getLogger().info("No homes found");
+					}
 				}
-			}else{
-				Bukkit.getLogger().info("No homes found");
-			}
+			}.runTaskLater(HuskHomesImport.instance, 1L);
 		}
 	}
 }

@@ -43,6 +43,7 @@ public class ImportThread extends BukkitRunnable{
 							net.william278.huskhomes.position.Location huskLocation = net.william278.huskhomes.position.Location.at(bukkitLocation.getX(), bukkitLocation.getY(), bukkitLocation.getZ(), bukkitLocation.getYaw(), bukkitLocation.getPitch(), World.from(bukkitLocation.getWorld().getName(), bukkitLocation.getWorld().getUID()));
 							Position position = Position.at(huskLocation, huskHomesAPI.getServer());
 							huskHomesAPI.createHome(huskUser, homeName, position);
+							huskHomesAPI.saveUserData(savedUser);
 							Bukkit.getLogger().info("created user and import " + homeName + " succeed");
 						}
 					}else{
